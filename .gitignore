@@ -1,0 +1,16 @@
+# 构建产物
+target/
+
+# WorkBuddy 本地辅助数据（非项目源码）
+.workbuddy/
+
+# IDE 临时文件
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# 日志与系统文件
+*.log
+.DS_Store
+Thumbs.db

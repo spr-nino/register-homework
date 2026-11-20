@@ -35,8 +35,12 @@ public final class RedisComponent {
     }
 
     public void set(String key, Map<String, String> value, long effectiveTime) {
-        this.redisTemplate.expire(key, effectiveTime, TimeUnit.SECONDS);
+        // 修复：先写入哈希内容，再设置过期时间。
+        // 原实现先对尚未创建的 key 调用 expire（不会生效），导致验证码/令牌永不过期。
         hashOperations.putAll(key, value);
+        if (effectiveTime > 0) {
+            this.redisTemplate.expire(key, effectiveTime, TimeUnit.SECONDS);
+        }
     }
 
     public Map<String, Object> getMap(String key) {

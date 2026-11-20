@@ -26,20 +26,35 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 通过第三方进行用户登录
+ * 通过第三方账号进行用户登录的服务实现类。
+ * 实现 {@link ThirdPartyLoginService}：按 openId 与第三方类型查询用户，不存在时同时创建用户、
+ * 登录映射关系与第三方账号记录；登录成功后生成 token 并缓存登录信息。
  */
 @Service
 public class ThirdPartyLoginServiceImpl implements ThirdPartyLoginService {
+    /** 日志对象。 */
     private static final Logger logger = LoggerFactory.getLogger(ThirdPartyLoginServiceImpl.class);
+    /** 登录 token 在 Redis 中的有效期（秒）。 */
     private static long TOKEN_EFFECTIVE_TIME = 100000000 * 60 * 60 ;
+    /** 登录 token 在 Redis 中的键前缀。 */
     public static String TOKEN_ = "LG_" ;
 
+    /** 登录用户服务，用于查询/保存用户与生成主键。 */
     @Autowired
     private LoginUserService loginUserService;
+    /** 第三方账号数据访问对象，用于查询用户绑定的第三方账号。 */
     @Autowired
     private ThirdPartAccountDao thirdPartAccountDao;
+    /** Redis 操作组件，用于缓存登录信息。 */
     @Autowired
     private RedisComponent redisComponent;
+    /**
+     * 使用第三方账号登录：账号不存在时自动创建用户与第三方账号记录，成功后返回登录结果并缓存登录信息。
+     *
+     * @param openId 第三方账号唯一标识
+     * @param thirdPartAccountType 第三方账号类型
+     * @return 登录结果，包含用户主键、token、注册标识及第三方账号信息
+     */
     @Override
     public LoginResult login(String openId, String thirdPartAccountType) {
         if (StringUtils.isEmpty(openId)) {
@@ -117,6 +132,11 @@ public class ThirdPartyLoginServiceImpl implements ThirdPartyLoginService {
         return loginResult;
     }
 
+    /**
+     * 获取第三方账号的数据访问对象。
+     *
+     * @return 第三方账号 DAO
+     */
     @Override
     public BaseDao<ThirdPartAccount> getBaseDao() {
         return thirdPartAccountDao;

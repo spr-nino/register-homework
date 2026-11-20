@@ -10,6 +10,28 @@ spring:
     url: jdbc:mysql://localhost:3306/register
     username: admin
     password: root
+  # 邮箱验证码 SMTP 配置。
+  # 凭据不写入源码：优先用环境变量覆盖，未配置时邮件发送会显式失败（不再静默打印验证码）。
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    # 验证码邮件使用的发件人；留空时回退到 username
+    from: ${MAIL_FROM:}
+    protocol: smtp
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          starttls:
+            enable: false
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
 redis:
   hostName: 192.168.1.40
   port: 6379

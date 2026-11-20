@@ -19,15 +19,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 /**
- * 用户正常注册
+ * 用户正常注册服务实现类。
+ * 实现 {@link NormalRegisterService}，以邮箱和密码注册用户：校验邮箱与密码格式、检查邮箱是否已被占用，
+ * 然后创建用户及登录映射关系并持久化。
  */
 @Service
 public class NormalRegisterServiceImpl implements NormalRegisterService {
+    /** 日志对象。 */
     private static final Logger logger = LoggerFactory.getLogger(NormalRegisterServiceImpl.class);
 
+    /** 登录用户服务，用于主键生成、存在性校验与用户保存。 */
     @Autowired
     private LoginUserService loginUserService;
 
+    /**
+     * 使用邮箱与密码注册用户。
+     *
+     * @param loginMail 注册邮箱
+     * @param password 注册密码
+     * @return 注册结果，包含新生成的登录 ID 与用户 ID
+     */
     @Override
     public LoginUserRegisterResult register(String loginMail, String password) {
         logger.debug("用户正常注册");
@@ -64,9 +75,9 @@ public class NormalRegisterServiceImpl implements NormalRegisterService {
     }
 
     /**
-     * 判断邮箱是否存在
-     * @param loginMail
-     * @return
+     * 判断邮箱是否已被注册。
+     * @param loginMail 注册邮箱
+     * @return 已注册返回 true，否则返回 false
      */
     @Override
     public boolean checkLoginName(String loginMail) {
@@ -74,6 +85,11 @@ public class NormalRegisterServiceImpl implements NormalRegisterService {
         return count > NumberConstant.Int.INT_ZERO;
     }
 
+    /**
+     * 本服务不依赖通用数据访问对象。
+     *
+     * @return 固定返回 null
+     */
     @Override
     public BaseDao<LoginUser> getBaseDao() {
         return null;

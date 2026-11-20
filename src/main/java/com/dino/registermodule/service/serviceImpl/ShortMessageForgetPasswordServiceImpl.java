@@ -19,17 +19,29 @@ import static com.dino.registermodule.base.LoginUserConstant.RedisShortMessagePr
 
 
 /**
- * 通过短信找回密码
+ * 通过短信找回密码服务实现类。
+ * 继承 {@link ForgetPasswordService}，校验手机号与密码格式以及 Redis 中的短信验证码后重置用户密码，
+ * 成功后清除对应的验证码。
  */
 @Service("ShortMessageForgetPasswordServiceImpl")
 public class ShortMessageForgetPasswordServiceImpl extends ForgetPasswordService {
+    /** 日志对象。 */
     private static final Logger logger = LoggerFactory.getLogger(ShortMessageForgetPasswordServiceImpl.class);
 
+    /** 登录用户服务，用于查询用户与修改密码。 */
     @Autowired
     private LoginUserService loginUserService;
+    /** Redis 操作组件，用于读取与清除短信验证码。 */
     @Autowired
     private RedisComponent redisComponent;
 
+    /**
+     * 通过短信验证码找回密码：校验手机号、密码与验证码，通过后重置密码并清除验证码。
+     *
+     * @param loginMobile 登录手机号
+     * @param verificationCode 短信验证码
+     * @param password 新密码
+     */
     @Override
     public void shortMessageForgetPassword(String loginMobile, String verificationCode, String password) {
         logger.debug("通过短信找回密码");
@@ -61,9 +73,9 @@ public class ShortMessageForgetPasswordServiceImpl extends ForgetPasswordService
     }
 
     /**
-     * 判断用户是否存在
-     * @param loginName
-     * @return
+     * 判断该手机号对应的用户是否存在。
+     * @param loginName 登录手机号
+     * @return 用户存在返回 true，否则返回 false
      */
     @Override
     protected boolean checkLoginName(String loginName) {

@@ -27,14 +27,21 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 用户正常登录
+ * 用户正常登录服务实现类。
+ * 实现 {@link NormalLoginService}，使用邮箱或手机号加密码登录；
+ * 通过 Redis 记录密码错误次数（累计达 5 次即冻结登录），登录成功后生成 token 并缓存登录信息。
  */
 @Service
 public class NormalLoginServiceImpl implements NormalLoginService {
+    /** 日志对象。 */
     private static final Logger logger = LoggerFactory.getLogger(NormalLoginServiceImpl.class);
+    /** 密码错误次数记录在 Redis 中的有效期（秒），即 15 分钟。 */
     private static long PASSWORD_EFFECTIVE_TIME = 15 * 60;
+    /** 登录 token 在 Redis 中的有效期（秒）。 */
     private static long TOKEN_EFFECTIVE_TIME = 100000000 * 60 * 60;
+    /** 密码错误次数记录在 Redis 中的键前缀。 */
     public static String LOGIN_TIMES_PREFIX = "LOGIN_TIMES_";
+    /** 登录 token 在 Redis 中的键前缀。 */
     public static String TOKEN = "LG_";
     @Autowired
     private LoginUserService loginUserService;
@@ -42,6 +49,13 @@ public class NormalLoginServiceImpl implements NormalLoginService {
     private RedisComponent redisComponent;
     @Autowired
     private ThirdPartAccountDao thirdPartAccountDao;
+    /**
+     * 使用邮箱或手机号与密码登录：校验输入格式、密码及错误次数，成功后生成 token 并返回登录结果。
+     *
+     * @param loginMail 登录邮箱或手机号
+     * @param password 登录密码
+     * @return 登录结果，包含用户主键、token 及第三方账号信息
+     */
     @Override
     public LoginResult login(String loginMail, String password) {
         LoginUser loginUser;
@@ -124,6 +138,11 @@ public class NormalLoginServiceImpl implements NormalLoginService {
         return result;
     }
 
+    /**
+     * 本服务不依赖通用数据访问对象。
+     *
+     * @return 固定返回 null
+     */
     @Override
     public BaseDao<LoginUser> getBaseDao() {
         return null;

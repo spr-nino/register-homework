@@ -11,15 +11,21 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
+ * Swagger2 配置类。
  * @author zh
  * @ClassName cn.saytime.Swgger2
- * @Description
+ * @Description 启用 Swagger2 并生成 controller 包下接口的 REST API 文档
  * @date 2017-07-10 22:12:31
  */
 @Configuration
 @EnableSwagger2
 public class Swagger2 {
 
+    /**
+     * 创建 API 文档 Docket，扫描 controller 包下的所有接口。
+     *
+     * @return Swagger Docket 实例
+     */
     @Bean
     public Docket createRestApi() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -30,6 +36,11 @@ public class Swagger2 {
                 .build();
     }
 
+    /**
+     * 构建 API 文档的基本信息（标题、描述、服务条款、版本等）。
+     *
+     * @return API 文档基本信息
+     */
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("springboot+mybatis+mysql+swagger")

@@ -192,15 +192,26 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     }
 
     /**
-     * 检查邮箱忘记密码验证码是否正确
-     * @param loginMobile
-     * @param loginId
-     * @param verificationCode
-     * @return
+     * 检查邮箱找回密码的验证码是否正确。
+     *
+     * <p>修复说明：原实现恒返回 false，导致邮箱验证码校验不可用。
+     * 现从 MAIL_FORGET_PASSWORD_ + 邮箱 对应的哈希中取出验证码进行比对。</p>
+     *
+     * @param loginMail       登录邮箱
+     * @param loginId         登录用户 ID（保留参数，兼容既有接口签名）
+     * @param verificationCode 待校验的验证码
+     * @return 验证码一致返回 true，否则返回 false
      */
     @Override
-    public boolean checkMailForgetPasswordVerificationCode(String loginMobile, String loginId, String verificationCode) {
-        return false;
+    public boolean checkMailForgetPasswordVerificationCode(String loginMail, String loginId, String verificationCode) {
+        Map<String, Object> value = this.getMailVerificationCode(
+                LoginUserConstant.RedisLoginUserMailPrefix.FORGET_PASSWORD_TYPE_PREFIX, loginMail);
+        if (org.springframework.util.CollectionUtils.isEmpty(value)) {
+            return false;
+        }
+        Object cacheCode = value.get("verificationCode");
+        return cacheCode != null && !StringUtils.isEmpty(cacheCode.toString())
+                && cacheCode.toString().equalsIgnoreCase(verificationCode);
     }
 
     /**

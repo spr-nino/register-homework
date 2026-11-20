@@ -1,6 +1,11 @@
 package com.dino.registermodule.base;
 
+/**
+ * 登录用户模块的常量集合，集中定义应用名、登录类型、短信类型、邮件类型、
+ * 各类状态值以及对应的 Redis 键前缀。
+ */
 public interface LoginUserConstant {
+    /** 应用（服务）名称 */
     String APPLICATION_NAME="LOGIN-USER-SERVICE";
 
 
@@ -21,24 +26,39 @@ public interface LoginUserConstant {
      * 短信类型
      */
     interface ShortMessageType{
+        /**短信用途：登录*/
         String LOGIN_TYPE = "1";
+        /**短信用途：注册*/
         String REGISTER_TYPE = "2";
+        /**短信用途：找回密码*/
         String FORGET_PASSWORD_TYPE="3";
+        /**短信用途：绑定登录用户*/
         String BIND_LOGIN_USER_TYPE = "4";
+        /**短信用途：取消绑定登录用户*/
         String CANCEL_BIND_LOGIN_USER_TYPE = "5";
     }
 
+    /** 各类短信验证码在 Redis 中存储时使用的键前缀 */
     interface RedisShortMessagePrefix{
+        /**登录短信的 Redis 键前缀*/
         String LOGIN_TYPE_PREFIX = "LOGIN_";
+        /**注册短信的 Redis 键前缀*/
         String REGISTER_TYPE_PREFIX = "REGISTER_";
+        /**找回密码短信的 Redis 键前缀*/
         String FORGET_PASSWORD_TYPE_PREFIX = "FORGET_PASSWORD_";
+        /**绑定登录用户短信的 Redis 键前缀*/
         String BIND_LOGIN_USER_TYPE_PREFIX = "BIND_LOGIN_USER_";
+        /**取消绑定登录用户短信的 Redis 键前缀*/
         String CANCEL_BIND_LOGIN_USER_TYPE_PREFIX = "CANCEL_BIND_LOGIN_USER_" ;
     }
 
+    /** 短信验证码的校验状态 */
     interface LoginShortMessageStatus{
+        /**短信已发送*/
         String SEND = "1";
+        /**短信验证中*/
         String PROVING = "2";
+        /**短信验证码已失效*/
         String INVALIDATE = "3";
     }
 
@@ -55,7 +75,7 @@ public interface LoginUserConstant {
     }
 
     /**
-     * Redis Login User Mail Prefix
+     * Redis Login User Mail Prefix，各类邮件验证码在 Redis 中存储时使用的键前缀
      */
     interface RedisLoginUserMailPrefix{
         /**FORGET_PASSWORD_TYPE_PREFIX:找回密码前缀*/

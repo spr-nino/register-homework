@@ -31,22 +31,38 @@ import static com.dino.registermodule.base.LoginUserConstant.RedisShortMessagePr
 
 
 /**
- * 用户通过手机短信进行登录
+ * 用户通过手机短信进行登录的服务实现类。
+ * 实现 {@link ShortMessageLoginService}：校验手机号与短信验证码，用户不存在时自动注册新用户，
+ * 登录成功后生成 token 并缓存登录信息，同时清除已使用的登录验证码。
  */
 @Service
 public class ShortMessageLoginServiceImpl implements ShortMessageLoginService {
+    /** 日志对象。 */
     private static final Logger logger = LoggerFactory.getLogger(ShortMessageLoginServiceImpl.class);
+    /** 登录 token 在 Redis 中的有效期（秒）。 */
     private static long TOKEN_EFFECTIVE_TIME = 100000000 * 60 * 60;
+    /** 登录 token 在 Redis 中的键前缀。 */
     public static String TOKEN = "LG_";
+    /** 登录用户服务，用于查询/保存用户与生成主键。 */
     @Autowired
     private LoginUserService loginUserService;
+    /** 验证码服务，用于校验登录验证码。 */
     @Autowired
     private VerificationCodeService verificationCodeService;
+    /** Redis 操作组件，用于缓存登录信息与清除验证码。 */
     @Autowired
     private RedisComponent redisComponent;
+    /** 第三方账号数据访问对象，用于查询用户绑定的第三方账号。 */
     @Autowired
     private ThirdPartAccountDao thirdPartAccountDao;
 
+    /**
+     * 使用手机号与短信验证码登录：用户不存在时自动注册，成功后返回登录结果并缓存登录信息。
+     *
+     * @param loginMobile 登录手机号
+     * @param verificationCode 短信验证码
+     * @return 登录结果，包含用户主键、token、注册标识及第三方账号信息
+     */
     @Override
     public LoginResult login(String loginMobile, String verificationCode) {
         logger.debug("手机短信验证码登录");
@@ -110,6 +126,11 @@ public class ShortMessageLoginServiceImpl implements ShortMessageLoginService {
         return loginResult;
     }
 
+    /**
+     * 本服务不依赖通用数据访问对象。
+     *
+     * @return 固定返回 null
+     */
     @Override
     public BaseDao<LoginUser> getBaseDao() {
         return null;

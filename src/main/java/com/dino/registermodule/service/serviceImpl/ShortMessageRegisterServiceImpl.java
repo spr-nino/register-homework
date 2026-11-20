@@ -23,18 +23,31 @@ import static com.dino.registermodule.base.LoginUserConstant.RedisShortMessagePr
 
 
 /**
- * 通过手机注册用户
+ * 通过手机注册用户服务实现类。
+ * 实现 {@link ShortMessageRegisterService}：校验手机号、验证码及手机号是否已被占用，
+ * 通过后创建用户与登录映射关系并持久化，最后清除已使用的注册验证码。
  */
 @Service
 public class ShortMessageRegisterServiceImpl implements ShortMessageRegisterService {
+    /** 日志对象。 */
     private static final Logger logger = LoggerFactory.getLogger(ShortMessageRegisterServiceImpl.class);
 
+    /** 登录用户服务，用于主键生成、存在性校验与用户保存。 */
     @Autowired
     private LoginUserService loginUserService;
+    /** 验证码服务，用于校验注册验证码。 */
     @Autowired
     private VerificationCodeService verificationCodeService;
+    /** Redis 操作组件，用于清除已使用的注册验证码。 */
     @Autowired
     private RedisComponent redisComponent;
+    /**
+     * 使用手机号与短信验证码注册用户。
+     *
+     * @param loginMobile 注册手机号
+     * @param verificationCode 短信验证码
+     * @return 注册结果，包含新生成的登录 ID 与用户 ID
+     */
     @Override
     public LoginUserRegisterResult register(String loginMobile, String verificationCode) {
         logger.debug("手机注册");
@@ -74,9 +87,9 @@ public class ShortMessageRegisterServiceImpl implements ShortMessageRegisterServ
     }
 
     /**
-     * 通过手机号查找用户数量
-     * @param loginMobile
-     * @return
+     * 判断该手机号对应的用户是否已存在。
+     * @param loginMobile 注册手机号
+     * @return 用户已存在返回 true，否则返回 false
      */
     @Override
     public boolean checkLoginName(String loginMobile) {
@@ -84,6 +97,11 @@ public class ShortMessageRegisterServiceImpl implements ShortMessageRegisterServ
         return count > NumberConstant.Int.INT_ZERO;
     }
 
+    /**
+     * 本服务不依赖通用数据访问对象。
+     *
+     * @return 固定返回 null
+     */
     @Override
     public BaseDao<LoginUser> getBaseDao() {
         return null;

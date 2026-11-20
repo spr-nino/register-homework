@@ -23,7 +23,8 @@ import static com.dino.registermodule.base.LoginUserConstant.RedisShortMessagePr
 
 
 /**
- * 短信发送调用实现
+ * 短信验证码发送组件：校验手机号与短信类型，生成并缓存验证码，
+ * 落库发送记录后调用 {@link MessageSendHandler} 完成短信下发。
  */
 @Component
 public final class ShortMessageComponent {
@@ -39,18 +40,33 @@ public final class ShortMessageComponent {
      * 短信验证码存储的时效
      */
     private static long SHORT_MESSAGE_TIMEOUT = 15 * 60;
+    /** 验证码生成服务 */
     @Autowired
     private VerificationCodeService verificationCodeService;
+    /** Redis 操作组件，用于缓存短信验证码 */
     @Autowired
     private RedisComponent redisComponent;
+    /** 短信发送记录服务，用于持久化验证码发送记录 */
     @Autowired
     private LoginShortMessageService loginShortMessageService;
+    /** 短信网关发送处理器 */
     @Autowired
     private MessageSendHandler messageSendHandler;
 
+    /** 短信发送记录 DAO */
     @Autowired
     private LoginShortMessageDao loginShortMessageDao;
 
+    /**
+     * 发送短信验证码。
+     *
+     * <p>流程：校验手机号 → 按短信类型选择 Redis 键前缀 → 若缓存中无有效验证码则生成新码、
+     * 写入缓存并落库发送记录 → 调用短信网关下发。</p>
+     *
+     * @param loginMobile      接收验证码的手机号
+     * @param shortMessageType 短信类型（登录/注册/忘记密码/绑定/取消绑定），决定 Redis 键前缀
+     * @throws BusinessException 手机号格式不正确或短信类型无法匹配时抛出
+     */
     public void sendShortMessage(String loginMobile, String shortMessageType) {
         if(StringUtils.isEmpty(loginMobile) || !RegexUtils.checkMobile(loginMobile)){
             throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR,"手机号码格式不正确");
@@ -73,6 +89,7 @@ public final class ShortMessageComponent {
 
         String verificationCode = this.redisComponent.get(redisShortMessagePrefix + loginMobile);
         if (StringUtils.isEmpty(verificationCode)) {
+            // 缓存中没有有效验证码时才重新生成，并落库一条发送记录
             verificationCode = verificationCodeService.createRandom(NUMBER_FLAG, VERIFICATION_CODE_LENGTH);
             this.redisComponent.set(redisShortMessagePrefix + loginMobile, verificationCode, SHORT_MESSAGE_TIMEOUT);
             LoginShortMessage loginShortMessage = new LoginShortMessage();
@@ -94,6 +111,7 @@ public final class ShortMessageComponent {
         try{
             messageSendHandler.msgSend(paramMap);
         }catch(Exception e){
+            // 短信网关发送失败仅打印异常堆栈，不中断主流程
             e.printStackTrace();
         }
     }
